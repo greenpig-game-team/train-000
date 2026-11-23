@@ -11,7 +11,7 @@ namespace GreenPig.EditorTools
     /// <summary>
     /// Tools > GreenPig > Setup Flashlight
     /// Player 프리팹에 손전등(Light2D + FlashlightController) 추가,
-    /// 씬 조명은 기본 밝기 유지, Cabin 2번 칸에 손전등 테스트용 "숨은 그림자" 배치.
+    /// 씬 조명은 기본 밝기 유지, Cabin 1번 칸에 손전등 테스트용 "숨은 그림자" 배치.
     /// </summary>
     public static class FlashlightSetupTool
     {
@@ -33,7 +33,7 @@ namespace GreenPig.EditorTools
             SetAmbient(PlatformScene, PlatformAmbient, addTest: false);
             SetAmbient(CabinScene, CabinAmbient, addTest: true);
 
-            Debug.Log("[GreenPig] 손전등 세팅 완료 — Cabin에서 C키, 2번 칸 가운데에 숨은 그림자 테스트");
+            Debug.Log("[GreenPig] 손전등 세팅 완료 — Cabin에서 C키, 1번 칸 가운데에 숨은 그림자 테스트");
         }
 
         static void AddFlashlightToPlayer()
@@ -85,7 +85,7 @@ namespace GreenPig.EditorTools
                 if (old != null) Object.DestroyImmediate(old);
 
                 var go = new GameObject("TEST_FlashlightShadow");
-                go.transform.position = new Vector3(0f, 2.2f, 0f); // 2번 칸 가운데, 사람 키 정도
+                go.transform.position = new Vector3(TrainBuilderTool.CarWidth, 2.2f, 0f); // 1번 칸 가운데 (0번 칸은 기준 칸이라 이상현상 X), 사람 키 정도
                 go.transform.localScale = new Vector3(1.2f, 4.4f, 1f);
                 var sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(WhitePath);

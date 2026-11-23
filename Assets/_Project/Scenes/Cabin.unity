@@ -226,7 +226,7 @@ Transform:
   m_GameObject: {fileID: 528490923}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.2, z: 0}
+  m_LocalPosition: {x: 17.5, y: 2.2, z: 0}
   m_LocalScale: {x: 1.2, y: 4.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -242,7 +242,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5980126525179817987, guid: 61eb64e359e10c04792dfc0375425590, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -23.25
+      value: -5.75
       objectReference: {fileID: 0}
     - target: {fileID: 5980126525179817987, guid: 61eb64e359e10c04792dfc0375425590, type: 3}
       propertyPath: m_LocalPosition.y
@@ -294,6 +294,55 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5980126525179817987, guid: 61eb64e359e10c04792dfc0375425590, type: 3}
   m_PrefabInstance: {fileID: 992155468}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &994323835
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 994323837}
+  - component: {fileID: 994323836}
+  m_Layer: 0
+  m_Name: Train
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &994323836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994323835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63329b7c782949d42882bae339e14b41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GreenPig.World.TrainBuilder
+  carPrefab: {fileID: 6159732994626550393, guid: 5bb82c89b49f2fc408a06bdfd6ede2fd, type: 3}
+  anomalyCarCount: 2
+  backgrounds:
+  - {fileID: 21300000, guid: 0e09deed716e399458ca4ac4fa0bd098, type: 3}
+  buildOnAwake: 1
+--- !u!4 &994323837
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 994323835}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1238532238
 GameObject:
   m_ObjectHideFlags: 0
@@ -378,63 +427,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &1753819690
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2237007323277415258, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9176439495499211502, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
-      propertyPath: m_Name
-      value: Train_3Cars
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 33809f68b27cd6a4cbe2201f0ad52fab, type: 3}
 --- !u!1 &1838995383
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,8 +462,8 @@ MonoBehaviour:
   smoothTime: 0.15
   offsetX: 0
   useBounds: 1
-  minX: -26.25
-  maxX: 26.25
+  minX: -8.75
+  maxX: 96.25
 --- !u!81 &1838995385
 AudioListener:
   m_ObjectHideFlags: 0
@@ -540,7 +532,7 @@ Transform:
   m_GameObject: {fileID: 1838995383}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -23.25, y: 2.5375, z: -10}
+  m_LocalPosition: {x: -5.75, y: 2.5375, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -553,5 +545,5 @@ SceneRoots:
   - {fileID: 1838995387}
   - {fileID: 1238532240}
   - {fileID: 992155468}
-  - {fileID: 1753819690}
   - {fileID: 528490926}
+  - {fileID: 994323837}

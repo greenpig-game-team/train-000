@@ -7,29 +7,34 @@ using UnityEngine;
 namespace GreenPig.EditorTools
 {
     /// <summary>
-    /// Tools > GreenPig > Build 3-Car Train
-    /// 객실 러프 3장을 이어 붙인 3칸 열차 프리팹(광고판 분리, 앞/뒷문 트리거, 양끝 벽)을 만들고
-    /// Cabin 씬의 임시 배경을 이 프리팹으로 교체 + 카메라 경계를 열차 전체 길이로 설정.
+    /// Tools > GreenPig > Build Train (0번 칸 + n칸)
+    /// 1) 칸 1개짜리 TrainCar 프리팹(배경 + 광고판 분리) 생성
+    /// 2) Cabin 씬의 예전 열차(Train_3Cars / Environment)를 지우고 TrainBuilder(임시 n = 2 → 세 칸)를 배치
+    ///    → Play 시 0번 칸(기준) + n칸이 생성되고 카메라 경계가 열차 전체 길이로 설정됨
     /// </summary>
     public static class TrainBuilderTool
     {
         const string BgPath = "Assets/_Project/Art/Backgrounds/BG_Cabin_Stage1.jpg";
         const string AdLeftPath = "Assets/_Project/Art/Backgrounds/Ad_Left.png";
         const string AdRightPath = "Assets/_Project/Art/Backgrounds/Ad_Right.png";
-        const string PrefabPath = "Assets/_Project/Prefabs/World/Train_3Cars.prefab";
+        const string CarPrefabPath = "Assets/_Project/Prefabs/World/TrainCar.prefab";
         const string CabinScene = "Assets/_Project/Scenes/Cabin.unity";
 
         // SceneSetupTool과 같은 기준 (러프 1000x400px, 카메라 세로 7 units)
         const float CamSize = 3.5f;
         const float BgPpu = 400f / (CamSize * 2f);
         const float CamY = CamSize - 55f / BgPpu;
-        const int CarCount = 3;
+        /// <summary>칸 1개 폭 (러프 1000px 기준, units)</summary>
+        public const float CarWidth = 1000f / BgPpu;
+
+        // 임시: 지금은 세 칸만 (0번 기준 칸 + 2칸). 스테이지 1 확정값은 5
+        const int Stage1AnomalyCount = 2;
 
         // 러프 이미지 안에서 광고판 중심 (px, 왼쪽 위 기준)
         static readonly Vector2 AdLeftPx = new(152f, 115f);
         static readonly Vector2 AdRightPx = new(808.5f, 117f);
 
-        [MenuItem("Tools/GreenPig/Build 3-Car Train")]
+        [MenuItem("Tools/GreenPig/Build Train (0번 칸 + n칸)")]
         public static void Build()
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -39,70 +44,96 @@ namespace GreenPig.EditorTools
             var adR = ImportSprite(AdRightPath);
             if (bg == null || adL == null || adR == null) return;
 
-            float carW = bg.bounds.size.x;
-            float half = carW * CarCount * 0.5f;
-
-            var prefab = BuildPrefab(bg, adL, adR, carW, half);
-            UpdateCabinScene(prefab, half);
-            Debug.Log($"[GreenPig] 3칸 열차 생성 완료 (길이 {half * 2f:0.0} units) — Cabin 씬 업데이트됨");
+            BuildCarPrefab(bg, adL, adR);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            UpdateCabinScene(bg);
+            Debug.Log($"[GreenPig] 열차 세팅 완료 — Cabin에서 Play 시 0번 칸 + {Stage1AnomalyCount}칸 생성. " +
+                      "예전 Train_3Cars.prefab은 더 이상 안 쓰니 지워도 됨");
         }
 
-        static GameObject BuildPrefab(Sprite bg, Sprite adL, Sprite adR, float carW, float half)
+        static void BuildCarPrefab(Sprite bg, Sprite adL, Sprite adR)
         {
-            var root = new GameObject("Train_3Cars");
+            var root = new GameObject("TrainCar");
 
-            for (int i = 0; i < CarCount; i++)
-            {
-                float cx = -half + carW * (i + 0.5f);
-                var car = new GameObject($"Car_{i + 1}");
-                car.transform.SetParent(root.transform);
-                car.transform.localPosition = new Vector3(cx, 0f, 0f);
+            var bgGo = new GameObject("Background (러프)");
+            bgGo.transform.SetParent(root.transform);
+            bgGo.transform.localPosition = new Vector3(0f, CamY, 0f);
+            var sr = bgGo.AddComponent<SpriteRenderer>();
+            sr.sprite = bg;
+            sr.sortingOrder = -20;
 
-                var bgGo = new GameObject("Background (러프)");
-                bgGo.transform.SetParent(car.transform);
-                bgGo.transform.localPosition = new Vector3(0f, CamY, 0f);
-                var sr = bgGo.AddComponent<SpriteRenderer>();
-                sr.sprite = bg;
-                sr.sortingOrder = -20;
+            Ad(root.transform, "AdBoard_Left", adL, AdLeftPx);
+            Ad(root.transform, "AdBoard_Right", adR, AdRightPx);
 
-                Ad(car.transform, "AdBoard_Left", adL, AdLeftPx, $"Car{i + 1}_Left");
-                Ad(car.transform, "AdBoard_Right", adR, AdRightPx, $"Car{i + 1}_Right");
-            }
+            var col = root.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.offset = new Vector2(0f, 3f);
+            col.size = new Vector2(CarWidth, 10f);
 
-            EndTrigger(root.transform, "Door_Back (뒷문)", TrainEndTrigger.Side.Back, -half + 1f);
-            EndTrigger(root.transform, "Door_Front (앞문)", TrainEndTrigger.Side.Front, half - 1f);
-            Wall(root.transform, "Wall_Back", -half - 0.5f);
-            Wall(root.transform, "Wall_Front", half + 0.5f);
+            var car = root.AddComponent<TrainCar>();
+            var so = new SerializedObject(car);
+            so.FindProperty("background").objectReferenceValue = sr;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
-            var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
+            PrefabUtility.SaveAsPrefabAsset(root, CarPrefabPath);
             Object.DestroyImmediate(root);
-            return prefab;
         }
 
-        static void UpdateCabinScene(GameObject trainPrefab, float half)
+        static void UpdateCabinScene(Sprite bg)
         {
             var scene = EditorSceneManager.OpenScene(CabinScene);
 
-            var oldEnv = GameObject.Find("Environment");
-            if (oldEnv != null) Object.DestroyImmediate(oldEnv);
-            var oldTrain = GameObject.Find("Train_3Cars");
-            if (oldTrain != null) Object.DestroyImmediate(oldTrain);
+            // 씬을 연 뒤에 프리팹을 다시 불러와야 참조가 끊기지 않음
+            var carPrefab = AssetDatabase.LoadAssetAtPath<TrainCar>(CarPrefabPath);
+            if (carPrefab == null)
+            {
+                Debug.LogError($"[GreenPig] 칸 프리팹을 못 찾음: {CarPrefabPath}");
+                return;
+            }
 
-            PrefabUtility.InstantiatePrefab(trainPrefab);
+            foreach (var oldName in new[] { "Environment", "Train_3Cars", "Train" })
+            {
+                var old = GameObject.Find(oldName);
+                if (old != null) Object.DestroyImmediate(old);
+            }
 
+            var trainGo = new GameObject("Train");
+            var builder = trainGo.AddComponent<TrainBuilder>();
+            var so = new SerializedObject(builder);
+            so.FindProperty("carPrefab").objectReferenceValue = carPrefab;
+            so.FindProperty("anomalyCarCount").intValue = Stage1AnomalyCount;
+            var bgs = so.FindProperty("backgrounds");
+            bgs.arraySize = 1; // 배경 placeholder가 더 생기면 인스펙터에 추가 → 칸마다 돌려가며 사용
+            bgs.GetArrayElementAtIndex(0).objectReferenceValue = bg;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            float minX = -CarWidth * 0.5f;
+            float maxX = minX + CarWidth * (Stage1AnomalyCount + 1);
+
+            // 플레이어는 0번(기준) 칸 뒤쪽에서 출발
             var player = Object.FindAnyObjectByType<PlayerController>();
-            if (player != null) player.transform.position = new Vector3(-half + 3f, 0f, 0f);
+            if (player != null) player.transform.position = new Vector3(minX + 3f, 0f, 0f);
 
             var follow = Object.FindAnyObjectByType<CameraFollow2D>();
             if (follow != null)
             {
-                follow.SetBounds(-half, half);
+                follow.SetBounds(minX, maxX);
                 if (player != null)
                 {
                     var p = follow.transform.position;
                     follow.transform.position = new Vector3(player.transform.position.x, p.y, p.z);
                 }
                 EditorUtility.SetDirty(follow);
+            }
+
+            // 손전등 테스트 그림자는 0번(기준) 칸이 아니라 1번 칸으로
+            var test = GameObject.Find("TEST_FlashlightShadow");
+            if (test != null)
+            {
+                var p = test.transform.position;
+                test.transform.position = new Vector3(CarWidth, p.y, p.z);
+                EditorUtility.SetDirty(test);
             }
 
             EditorSceneManager.MarkSceneDirty(scene);
@@ -128,7 +159,7 @@ namespace GreenPig.EditorTools
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        static void Ad(Transform car, string name, Sprite sprite, Vector2 px, string id)
+        static void Ad(Transform car, string name, Sprite sprite, Vector2 px)
         {
             var go = new GameObject(name);
             go.transform.SetParent(car);
@@ -136,26 +167,7 @@ namespace GreenPig.EditorTools
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
             sr.sortingOrder = -19;
-            go.AddComponent<AdBoard>().SetId(id);
-        }
-
-        static void EndTrigger(Transform parent, string name, TrainEndTrigger.Side side, float x)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent);
-            go.transform.localPosition = new Vector3(x, 3f, 0f);
-            var col = go.AddComponent<BoxCollider2D>();
-            col.isTrigger = true;
-            col.size = new Vector2(1f, 10f);
-            go.AddComponent<TrainEndTrigger>().SetSide(side);
-        }
-
-        static void Wall(Transform parent, string name, float x)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent);
-            go.transform.localPosition = new Vector3(x, 3f, 0f);
-            go.AddComponent<BoxCollider2D>().size = new Vector2(1f, 10f);
+            go.AddComponent<AdBoard>(); // id는 TrainCar.Setup에서 "Car{번호}_Left/Right"로 지정
         }
     }
 }
