@@ -25,10 +25,6 @@ namespace GreenPig.Shared
         public static event Action<string> TaskDone;
         public static void RaiseTaskDone(string taskId) => TaskDone?.Invoke(taskId);
 
-        /// <summary>무전기 신고 버튼 누름 → A가 스테이지 클리어 판정.</summary>
-        public static event Action Reported;
-        public static void RaiseReported() => Reported?.Invoke();
-
         /// <summary>대화/혼잣말 한 묶음이 끝남 → A가 다음 흐름 진행 (플레이어 이동 잠금 해제 등).</summary>
         public static event Action<string> DialogueFinished;
         public static void RaiseDialogueFinished(string dialogueId) => DialogueFinished?.Invoke(dialogueId);
@@ -41,7 +37,7 @@ namespace GreenPig.Shared
         public static event Action<int, int> SanityChanged;
         public static void RaiseSanityChanged(int current, int max) => SanityChanged?.Invoke(current, max);
 
-        /// <summary>현재 라운드 이상현상을 모두 찾음 → 신고 버튼 활성화.</summary>
+        /// <summary>이번 스테이지 이상현상을 모두 찾음 → 이제 마지막 칸을 지나면 스테이지 통과 (안내 표시 등).</summary>
         public static event Action AllAnomaliesResolved;
         public static void RaiseAllAnomaliesResolved() => AllAnomaliesResolved?.Invoke();
 
@@ -57,6 +53,10 @@ namespace GreenPig.Shared
         public static event Action<string> DialogueRequested;
         public static void RaiseDialogueRequested(string dialogueId) => DialogueRequested?.Invoke(dialogueId);
 
+        /// <summary>플레이어가 다른 칸에 들어감 → 칸 번호 UI 갱신. carIndex 0 = 기준 칸, lastIndex = 마지막 칸 번호(이상현상 수).</summary>
+        public static event Action<int, int> CarEntered;
+        public static void RaiseCarEntered(int carIndex, int lastIndex) => CarEntered?.Invoke(carIndex, lastIndex);
+
         /// <summary>손전등 켜짐/꺼짐 → 손전등 아이콘 갱신.</summary>
         public static event Action<bool> FlashlightToggled;
         public static void RaiseFlashlightToggled(bool isOn) => FlashlightToggled?.Invoke(isOn);
@@ -70,13 +70,13 @@ namespace GreenPig.Shared
             TicketChecked = null;
             TicketingFinished = null;
             TaskDone = null;
-            Reported = null;
             DialogueFinished = null;
             SanityChanged = null;
             AllAnomaliesResolved = null;
             StageCleared = null;
             GameOver = null;
             DialogueRequested = null;
+            CarEntered = null;
             FlashlightToggled = null;
         }
     }
