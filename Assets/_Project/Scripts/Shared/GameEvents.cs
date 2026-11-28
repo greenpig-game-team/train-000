@@ -33,6 +33,14 @@ namespace GreenPig.Shared
         // A → B  (A가 Raise, B가 구독)
         // ─────────────────────────────────────────────
 
+        /// <summary>
+        /// 스테이지 시작 (순회 전, 정신력 리셋 직후). carCount = 이번 역 열차 칸 수 = 이상현상 수.
+        /// B: 화면 중앙 "이번 역 열차 칸 수: n칸" 안내, flashlightEnabled가 false면 손전등 아이콘 숨김 (3스테이지부터 true).
+        /// (2주차 추가 — 합의 필요)
+        /// </summary>
+        public static event Action<int, int, bool> StageStarted;
+        public static void RaiseStageStarted(int stage, int carCount, bool flashlightEnabled) => StageStarted?.Invoke(stage, carCount, flashlightEnabled);
+
         /// <summary>정신력 변경 → 정신력 바(10칸) 갱신.</summary>
         public static event Action<int, int> SanityChanged;
         public static void RaiseSanityChanged(int current, int max) => SanityChanged?.Invoke(current, max);
@@ -71,6 +79,7 @@ namespace GreenPig.Shared
             TicketingFinished = null;
             TaskDone = null;
             DialogueFinished = null;
+            StageStarted = null;
             SanityChanged = null;
             AllAnomaliesResolved = null;
             StageCleared = null;

@@ -6,8 +6,10 @@ namespace GreenPig.World
     /// <summary>
     /// 열차 생성기: 0번 칸(기준) + n칸을 Car 프리팹으로 이어 붙임.
     /// n = 이번 스테이지 이상현상 수 (1스테이지 5 / 2스테이지 5 / 3스테이지 7 / 4·5스테이지 8).
-    /// 0번 칸이 뒤쪽(왼쪽, x=0 중심), 칸 번호가 커질수록 앞쪽(오른쪽).
-    /// 마지막 칸 앞문을 지나면 TrainEndTrigger(Front) → 스테이지 통과 판정에 사용.
+    /// 0번 칸이 왼쪽(x=0 중심), 칸 번호가 커질수록 오른쪽. 칸 사이에는 문이 없고 일자로 이어짐.
+    /// 문은 열차 전체에 하나씩 (11/27 확인):
+    ///  - 앞문(Return): 0번 칸 왼쪽 끝. 이상현상을 발견하면 여기까지 돌아옴
+    ///  - 뒷문(Exit): 마지막 칸 오른쪽 끝. 이상현상을 다 찾고 여기로 나가면 스테이지 완료
     /// </summary>
     public class TrainBuilder : MonoBehaviour
     {
@@ -23,10 +25,19 @@ namespace GreenPig.World
         public IReadOnlyList<TrainCar> Cars => cars;
         public int AnomalyCarCount => anomalyCarCount;
         public float CarWidth { get; private set; }
-        /// <summary>열차 뒤 끝(0번 칸 뒷벽) x</summary>
+        /// <summary>열차 왼쪽 끝(0번 칸, 앞문 쪽) x</summary>
         public float MinX { get; private set; }
-        /// <summary>열차 앞 끝(마지막 칸 앞벽) x</summary>
+        /// <summary>열차 오른쪽 끝(마지막 칸, 뒷문 쪽) x</summary>
         public float MaxX { get; private set; }
+        /// <summary>플레이어 출발 위치 x (0번 칸, 앞문 바로 옆)</summary>
+        public float SpawnX => MinX + 3f;
+
+        /// <summary>index번 칸의 왼쪽 경계 x</summary>
+        public float CarStartX(int index) => MinX + CarWidth * index;
+
+        /// <summary>월드 x → 칸 번호 (열차 밖이면 0 또는 마지막 칸으로 clamp)</summary>
+        public int CarIndexAt(float x) =>
+            Mathf.Clamp(Mathf.FloorToInt((x - MinX) / Mathf.Max(0.01f, CarWidth)), 0, anomalyCarCount);
 
         void Awake()
         {
@@ -52,10 +63,10 @@ namespace GreenPig.World
                 cars.Add(car);
             }
 
-            EndTrigger("Door_Back (0번 칸 뒷문)", TrainEndTrigger.Side.Back, MinX + 1f);
-            EndTrigger($"Door_Front ({anomalyCarCount}번 칸 앞문)", TrainEndTrigger.Side.Front, MaxX - 1f);
-            Wall("Wall_Back", MinX - 0.5f);
-            Wall("Wall_Front", MaxX + 0.5f);
+            EndTrigger("Door_Return (앞문, 0번 칸)", TrainEndTrigger.Side.Return, MinX + 1f);
+            EndTrigger($"Door_Exit (뒷문, {anomalyCarCount}번 칸)", TrainEndTrigger.Side.Exit, MaxX - 1f);
+            Wall("Wall_Left", MinX - 0.5f);
+            Wall("Wall_Right", MaxX + 0.5f);
 
             var follow = FindAnyObjectByType<CameraFollow2D>();
             if (follow != null) follow.SetBounds(MinX, MaxX);
@@ -73,6 +84,8 @@ namespace GreenPig.World
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var child = transform.GetChild(i).gameObject;
+                // Destroy는 프레임 끝에 처리되므로 먼저 꺼서 CarShadow.All 등 등록 목록에서 바로 빠지게 함
+                child.SetActive(false);
                 if (Application.isPlaying) Destroy(child); else DestroyImmediate(child);
             }
         }
