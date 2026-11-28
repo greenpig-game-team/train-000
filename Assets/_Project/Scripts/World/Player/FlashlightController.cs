@@ -18,12 +18,23 @@ namespace GreenPig.World
 
         [Header("빛 모양")]
         [SerializeField] float range = 7f;
-        [SerializeField] float coneAngle = 50f;   // 바깥 각도 (전체)
-        [SerializeField] float innerAngle = 25f;
-        [SerializeField] float intensity = 0.6f;   // 밝은 배경 위에 은은하게 보이는 정도
+        [SerializeField] float coneAngle = 80f;   // 바깥 각도 (전체) — 위아래로 넓게
+        [SerializeField] float innerAngle = 50f;
+        [SerializeField] float intensity = 1.5f;   // 빛 밝기 (높이면 가운데가 하얗게 날아감)
+        [SerializeField, Range(0f, 1f)] float beamVisibility = 0.12f; // 허공에 보이는 빛줄기 진하기 (0이면 안 보임)
+        [SerializeField] Color beamColor = new(0.75f, 0.3f, 1f); // 형광 보라
         [SerializeField] Vector2 handOffset = new(0.25f, 1.1f); // 플레이어 로컬 기준 (스케일 적용 전)
 
         public bool IsOn { get; private set; }
+
+        /// <summary>이번 스테이지에서 손전등을 쓸 수 있는지 (3스테이지부터, StageConfig로 GameManager가 설정)</summary>
+        public bool IsAvailable { get; private set; } = true;
+
+        public void SetAvailable(bool available)
+        {
+            IsAvailable = available;
+            if (!available && IsOn) SetOn(false);
+        }
 
         void Awake()
         {
@@ -49,12 +60,17 @@ namespace GreenPig.World
             beam.pointLightOuterAngle = coneAngle;
             beam.pointLightInnerAngle = innerAngle;
             beam.intensity = intensity;
-            beam.color = new Color(1f, 0.95f, 0.8f);
+            beam.color = beamColor;
+            // 배경 조명(Global Light)이 이미 1이라 Multiply 방식은 더 밝아지지 않음 → Additive(색을 더함) 방식으로 비춤
+            beam.blendStyleIndex = 1;
+            // 배경이 어두운 곳에서도 빛줄기 자체가 보이도록 (Volumetric)
+            beam.volumetricEnabled = beamVisibility > 0f;
+            beam.volumeIntensity = beamVisibility;
         }
 
         void Update()
         {
-            if (CPressed() && (player == null || !player.IsLocked)) SetOn(!IsOn);
+            if (IsAvailable && CPressed() && (player == null || !player.IsLocked)) SetOn(!IsOn);
 
             // 플레이어가 보는 방향으로 빛 회전 (Light2D는 transform.up 방향을 비춤)
             float facing = player != null ? player.FacingX : 1f;

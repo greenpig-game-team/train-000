@@ -31,18 +31,33 @@ namespace GreenPig.World
 
         void Awake() => cam = GetComponent<Camera>();
 
-        void LateUpdate()
+        /// <summary>부드럽게 따라가지 않고 바로 플레이어 위치로 (순간이동 직후 사용)</summary>
+        public void SnapToTarget()
         {
             if (target == null) return;
+            velocityX = 0f;
+            var p = transform.position;
+            p.x = Goal();
+            transform.position = p;
+        }
 
+        float Goal()
+        {
             float goal = target.position.x + offsetX;
-
             if (useBounds && cam != null && cam.orthographic)
             {
                 float halfWidth = cam.orthographicSize * cam.aspect;
                 float lo = minX + halfWidth, hi = maxX - halfWidth;
                 goal = lo > hi ? (minX + maxX) * 0.5f : Mathf.Clamp(goal, lo, hi);
             }
+            return goal;
+        }
+
+        void LateUpdate()
+        {
+            if (target == null) return;
+
+            float goal = Goal();
 
             var p = transform.position;
             p.x = Mathf.SmoothDamp(p.x, goal, ref velocityX, smoothTime);

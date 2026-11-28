@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -51,6 +52,30 @@ namespace GreenPig.Core
             if (Instance == null) Bootstrap();
             if (IsTransitioning) return;
             Instance.StartCoroutine(Instance.LoadRoutine(sceneName, fadeDuration));
+        }
+
+        /// <summary>
+        /// 씬 전환 없이 검은 화면으로 페이드 → onBlack 실행(플레이어 순간이동 등) → 다시 밝아짐.
+        /// 이상현상 오답 시 0번 칸으로 되돌릴 때 사용.
+        /// </summary>
+        public static void FadeOutIn(Action onBlack, float fadeDuration = DefaultFade, Action onDone = null)
+        {
+            if (Instance == null) Bootstrap();
+            if (IsTransitioning) return;
+            Instance.StartCoroutine(Instance.FadeOutInRoutine(onBlack, fadeDuration, onDone));
+        }
+
+        IEnumerator FadeOutInRoutine(Action onBlack, float duration, Action onDone)
+        {
+            IsTransitioning = true;
+            overlay.raycastTarget = true;
+            yield return Fade(0f, 1f, duration);
+            onBlack?.Invoke();
+            yield return new WaitForSecondsRealtime(0.15f);
+            yield return Fade(1f, 0f, duration);
+            overlay.raycastTarget = false;
+            IsTransitioning = false;
+            onDone?.Invoke();
         }
 
         IEnumerator LoadRoutine(string sceneName, float duration)
